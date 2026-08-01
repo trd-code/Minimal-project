@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#1f2937" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>กระดานวาด</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Canvas -->
+    <canvas id="board"></canvas>
+
+    <!-- Top bar -->
+    <header id="topbar">
+      <div class="page-info">
+        <button class="icon-btn" id="prevPage" title="สไลด์ก่อนหน้า">‹</button>
+        <span id="pageLabel">1 / 1</span>
+        <button class="icon-btn" id="nextPage" title="สไลด์ถัดไป">›</button>
+        <button class="icon-btn" id="addPage" title="เพิ่มสไลด์">＋</button>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" id="saveBtn" title="บันทึกเป็นรูป">⤓</button>
+        <button class="icon-btn" id="menuBtn" title="เมนู">⋯</button>
+      </div>
+    </header>
+
+    <!-- Toolbar -->
+    <div id="toolbar">
+      <button class="tool active" data-tool="pen" title="ปากกา">✏️</button>
+      <button class="tool" data-tool="marker" title="ปากกาเน้นข้อความ">🖍️</button>
+      <button class="tool" data-tool="eraser" title="ยางลบ">🧽</button>
+
+      <div class="divider"></div>
+
+      <div class="swatches" id="swatches"></div>
+
+      <div class="divider"></div>
+
+      <input type="range" id="sizeRange" min="1" max="40" value="4" title="ขนาดเส้น" />
+
+      <div class="divider"></div>
+
+      <button class="icon-btn" id="undoBtn" title="เลิกทำ">↶</button>
+      <button class="icon-btn" id="redoBtn" title="ทำซ้ำ">↷</button>
+      <button class="icon-btn" id="clearBtn" title="ล้างสไลด์">🗑️</button>
+    </div>
+
+    <!-- Menu sheet -->
+    <div id="menuSheet" class="sheet hidden">
+      <div class="sheet-card">
+        <h3>เมนู</h3>
+        <button class="sheet-item" id="bgWhite">พื้นหลังสีขาว</button>
+        <button class="sheet-item" id="bgDark">พื้นหลังสีเข้ม</button>
+        <button class="sheet-item" id="bgGrid">พื้นหลังตาราง</button>
+        <button class="sheet-item" id="deletePage">ลบสไลด์นี้</button>
+        <button class="sheet-item danger" id="clearAll">ล้างทั้งหมด</button>
+        <button class="sheet-item" id="closeMenu">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
