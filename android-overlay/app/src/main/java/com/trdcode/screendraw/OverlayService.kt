@@ -17,12 +17,13 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.Button
+import kotlin.math.abs
 
 /**
  * Foreground service that shows two system overlays on top of every app:
  *  1. A full-screen transparent [DrawingView] for the strokes.
- *  2. A small floating toolbar to switch between draw / pass-through modes,
- *     change color, undo, clear and close.
+ *  2. A floating toolbar that can collapse into a small AssistiveTouch-style
+ *     bubble so it stays out of the way while you use other apps.
  */
 class OverlayService : Service() {
 
@@ -128,15 +129,34 @@ class OverlayService : Service() {
             y = 180
         }
 
+        val expandedBar = toolbar.findViewById<View>(R.id.expandedBar)
+        val collapsedBubble = toolbar.findViewById<View>(R.id.collapsedBubble)
         val handle = toolbar.findViewById<View>(R.id.handle)
         val btnToggle = toolbar.findViewById<Button>(R.id.btnToggle)
         val btnColor = toolbar.findViewById<Button>(R.id.btnColor)
         val btnUndo = toolbar.findViewById<Button>(R.id.btnUndo)
         val btnClear = toolbar.findViewById<Button>(R.id.btnClear)
+        val btnMin = toolbar.findViewById<Button>(R.id.btnMin)
         val btnClose = toolbar.findViewById<Button>(R.id.btnClose)
 
         updateToggleLabel(btnToggle)
         btnColor.setBackgroundColor(colors[colorIndex])
+
+        fun collapse() {
+            // pause drawing so the app underneath is fully usable
+            drawing = false
+            applyDrawingMode()
+            updateToggleLabel(btnToggle)
+            expandedBar.visibility = View.GONE
+            collapsedBubble.visibility = View.VISIBLE
+            windowManager.updateViewLayout(toolbar, toolbarParams)
+        }
+
+        fun expand() {
+            collapsedBubble.visibility = View.GONE
+            expandedBar.visibility = View.VISIBLE
+            windowManager.updateViewLayout(toolbar, toolbarParams)
+        }
 
         btnToggle.setOnClickListener {
             drawing = !drawing
@@ -150,34 +170,57 @@ class OverlayService : Service() {
         }
         btnUndo.setOnClickListener { drawingView.undo() }
         btnClear.setOnClickListener { drawingView.clearAll() }
+        btnMin.setOnClickListener { collapse() }
         btnClose.setOnClickListener { stopSelf() }
 
-        handle.setOnTouchListener(object : View.OnTouchListener {
+        // Drag the expanded toolbar by its handle.
+        handle.setOnTouchListener(makeDragListener(null))
+
+        // The bubble can be dragged, and a tap (without dragging) expands it.
+        collapsedBubble.setOnTouchListener(makeDragListener { expand() })
+
+        windowManager.addView(toolbar, toolbarParams)
+    }
+
+    /**
+     * Returns a touch listener that drags the toolbar window. If [onTap] is not
+     * null, releasing without moving is treated as a tap.
+     */
+    private fun makeDragListener(onTap: (() -> Unit)?): View.OnTouchListener {
+        return object : View.OnTouchListener {
             private var startX = 0
             private var startY = 0
-            private var touchRawX = 0f
-            private var touchRawY = 0f
+            private var downRawX = 0f
+            private var downRawY = 0f
+            private var moved = false
+
             override fun onTouch(v: View, e: MotionEvent): Boolean {
                 when (e.actionMasked) {
                     MotionEvent.ACTION_DOWN -> {
                         startX = toolbarParams.x
                         startY = toolbarParams.y
-                        touchRawX = e.rawX
-                        touchRawY = e.rawY
+                        downRawX = e.rawX
+                        downRawY = e.rawY
+                        moved = false
                         return true
                     }
                     MotionEvent.ACTION_MOVE -> {
-                        toolbarParams.x = startX + (e.rawX - touchRawX).toInt()
-                        toolbarParams.y = startY + (e.rawY - touchRawY).toInt()
+                        val dx = e.rawX - downRawX
+                        val dy = e.rawY - downRawY
+                        if (abs(dx) > 12f || abs(dy) > 12f) moved = true
+                        toolbarParams.x = startX + dx.toInt()
+                        toolbarParams.y = startY + dy.toInt()
                         windowManager.updateViewLayout(toolbar, toolbarParams)
+                        return true
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        if (!moved && onTap != null) onTap.invoke()
                         return true
                     }
                 }
                 return false
             }
-        })
-
-        windowManager.addView(toolbar, toolbarParams)
+        }
     }
 
     private fun updateToggleLabel(btn: Button) {

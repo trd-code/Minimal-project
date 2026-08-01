@@ -1,83 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:background="@drawable/toolbar_bg"
-    android:gravity="center_vertical">
+    android:layout_height="wrap_content">
 
+    <!-- Expanded toolbar -->
+    <LinearLayout
+        android:id="@+id/expandedBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/toolbar_bg"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/handle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⠿"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp" />
+
+        <Button
+            android:id="@+id/btnToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:background="@null"
+            android:text="✏️"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp" />
+
+        <Button
+            android:id="@+id/btnColor"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:text=""
+            android:textSize="1sp" />
+
+        <Button
+            android:id="@+id/btnUndo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:background="@null"
+            android:text="↶"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp" />
+
+        <Button
+            android:id="@+id/btnClear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:background="@null"
+            android:text="🗑"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp" />
+
+        <Button
+            android:id="@+id/btnMin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:background="@null"
+            android:text="➖"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/btnClose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:background="@null"
+            android:text="✕"
+            android:textColor="#FF6B6B"
+            android:textSize="20sp" />
+    </LinearLayout>
+
+    <!-- Collapsed floating bubble (AssistiveTouch style) -->
     <TextView
-        android:id="@+id/handle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="⠿"
-        android:textColor="#FFFFFF"
-        android:textSize="22sp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp" />
-
-    <Button
-        android:id="@+id/btnToggle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minWidth="0dp"
-        android:minHeight="0dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:background="@null"
+        android:id="@+id/collapsedBubble"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:background="@drawable/bubble_bg"
+        android:gravity="center"
         android:text="✏️"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp" />
-
-    <Button
-        android:id="@+id/btnColor"
-        android:layout_width="34dp"
-        android:layout_height="34dp"
-        android:layout_marginLeft="6dp"
-        android:layout_marginRight="6dp"
-        android:minWidth="0dp"
-        android:minHeight="0dp"
-        android:text=""
-        android:textSize="1sp" />
-
-    <Button
-        android:id="@+id/btnUndo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minWidth="0dp"
-        android:minHeight="0dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:background="@null"
-        android:text="↶"
-        android:textColor="#FFFFFF"
-        android:textSize="22sp" />
-
-    <Button
-        android:id="@+id/btnClear"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minWidth="0dp"
-        android:minHeight="0dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:background="@null"
-        android:text="🗑"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp" />
-
-    <Button
-        android:id="@+id/btnClose"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minWidth="0dp"
-        android:minHeight="0dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:background="@null"
-        android:text="✕"
-        android:textColor="#FF6B6B"
-        android:textSize="20sp" />
-</LinearLayout>
+        android:textSize="24sp"
+        android:visibility="gone" />
+</FrameLayout>
