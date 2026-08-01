@@ -7,8 +7,10 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.IBinder
 import android.view.Gravity
@@ -17,13 +19,17 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.SeekBar
+import android.widget.TextView
 import kotlin.math.abs
 
 /**
- * Foreground service that shows two system overlays on top of every app:
+ * Foreground service that shows overlays on top of every app:
  *  1. A full-screen transparent [DrawingView] for the strokes.
- *  2. A floating toolbar that can collapse into a small AssistiveTouch-style
- *     bubble so it stays out of the way while you use other apps.
+ *  2. A floating toolbar that collapses into an AssistiveTouch-style bubble.
+ *  3. An on-demand color picker with a free HSV wheel, preset colors and
+ *     recently used colors.
  */
 class OverlayService : Service() {
 
@@ -32,26 +38,27 @@ class OverlayService : Service() {
     private lateinit var toolbar: View
     private lateinit var drawParams: WindowManager.LayoutParams
     private lateinit var toolbarParams: WindowManager.LayoutParams
+    private lateinit var prefs: SharedPreferences
 
     private var drawing = true
+    private var currentColor = Color.parseColor("#F44336")
+    private var btnColorRef: Button? = null
+    private var pickerView: View? = null
 
-    private val colors = intArrayOf(
+    private val presetColors = intArrayOf(
         Color.parseColor("#F44336"), // red
-        Color.parseColor("#FF9800"), // orange
-        Color.parseColor("#FFEB3B"), // yellow
-        Color.parseColor("#4CAF50"), // green
         Color.parseColor("#2196F3"), // blue
-        Color.parseColor("#9C27B0"), // purple
-        Color.parseColor("#000000"), // black
-        Color.parseColor("#FFFFFF")  // white
+        Color.parseColor("#4CAF50"), // green
+        Color.parseColor("#FFEB3B"), // yellow
+        Color.parseColor("#000000")  // black
     )
-    private var colorIndex = 0
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        prefs = getSharedPreferences("screendraw", Context.MODE_PRIVATE)
         startAsForeground()
         addDrawingView()
         addToolbar()
@@ -72,6 +79,8 @@ class OverlayService : Service() {
         else
             @Suppress("DEPRECATION")
             WindowManager.LayoutParams.TYPE_PHONE
+
+    private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
 
     private fun startAsForeground() {
         val channelId = "screendraw_overlay"
@@ -104,7 +113,7 @@ class OverlayService : Service() {
 
     private fun addDrawingView() {
         drawingView = DrawingView(this)
-        drawingView.setColor(colors[colorIndex])
+        drawingView.setColor(currentColor)
         drawParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
@@ -139,11 +148,11 @@ class OverlayService : Service() {
         val btnMin = toolbar.findViewById<Button>(R.id.btnMin)
         val btnClose = toolbar.findViewById<Button>(R.id.btnClose)
 
+        btnColorRef = btnColor
         updateToggleLabel(btnToggle)
-        btnColor.setBackgroundColor(colors[colorIndex])
+        btnColor.setBackgroundColor(currentColor)
 
         fun collapse() {
-            // pause drawing so the app underneath is fully usable
             drawing = false
             applyDrawingMode()
             updateToggleLabel(btnToggle)
@@ -163,29 +172,146 @@ class OverlayService : Service() {
             applyDrawingMode()
             updateToggleLabel(btnToggle)
         }
-        btnColor.setOnClickListener {
-            colorIndex = (colorIndex + 1) % colors.size
-            drawingView.setColor(colors[colorIndex])
-            btnColor.setBackgroundColor(colors[colorIndex])
-        }
+        btnColor.setOnClickListener { openColorPicker() }
         btnUndo.setOnClickListener { drawingView.undo() }
         btnClear.setOnClickListener { drawingView.clearAll() }
         btnMin.setOnClickListener { collapse() }
         btnClose.setOnClickListener { stopSelf() }
 
-        // Drag the expanded toolbar by its handle.
         handle.setOnTouchListener(makeDragListener(null))
-
-        // The bubble can be dragged, and a tap (without dragging) expands it.
         collapsedBubble.setOnTouchListener(makeDragListener { expand() })
 
         windowManager.addView(toolbar, toolbarParams)
     }
 
-    /**
-     * Returns a touch listener that drags the toolbar window. If [onTap] is not
-     * null, releasing without moving is treated as a tap.
-     */
+    // ---- Color picker -------------------------------------------------------
+
+    private fun openColorPicker() {
+        if (pickerView != null) return
+        val root = LayoutInflater.from(this).inflate(R.layout.color_picker, null)
+        val params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
+            overlayType(),
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            PixelFormat.TRANSLUCENT
+        )
+
+        val wheel = root.findViewById<ColorWheelView>(R.id.wheel)
+        val brightness = root.findViewById<SeekBar>(R.id.brightness)
+        val preview = root.findViewById<View>(R.id.preview)
+        val presetRow = root.findViewById<LinearLayout>(R.id.presetRow)
+        val recentRow = root.findViewById<LinearLayout>(R.id.recentRow)
+        val btnDone = root.findViewById<Button>(R.id.btnPickerDone)
+        val btnClose = root.findViewById<Button>(R.id.btnPickerClose)
+        val panel = root.findViewById<View>(R.id.pickerPanel)
+
+        var temp = currentColor
+
+        fun setPreview(c: Int) {
+            val d = GradientDrawable()
+            d.shape = GradientDrawable.OVAL
+            d.setColor(c)
+            d.setStroke(dp(2), Color.WHITE)
+            preview.background = d
+        }
+
+        wheel.onColorChanged = { c ->
+            temp = c
+            setPreview(c)
+        }
+        wheel.setColor(currentColor)
+        val hsv = FloatArray(3)
+        Color.colorToHSV(currentColor, hsv)
+        brightness.progress = (hsv[2] * 100f).toInt()
+        setPreview(currentColor)
+
+        brightness.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
+                wheel.setValue(p / 100f)
+            }
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {}
+        })
+
+        fun applyToWheel(c: Int) {
+            wheel.setColor(c)
+            val tmp = FloatArray(3)
+            Color.colorToHSV(c, tmp)
+            brightness.progress = (tmp[2] * 100f).toInt()
+            temp = c
+            setPreview(c)
+        }
+
+        for (c in presetColors) {
+            presetRow.addView(makeSwatch(c) { applyToWheel(c) })
+        }
+
+        val recents = getRecents()
+        if (recents.isEmpty()) {
+            val hint = TextView(this)
+            hint.text = "— ยังไม่มี —"
+            hint.setTextColor(0x88FFFFFF.toInt())
+            recentRow.addView(hint)
+        } else {
+            for (c in recents) {
+                recentRow.addView(makeSwatch(c) { applyToWheel(c) })
+            }
+        }
+
+        btnDone.setOnClickListener {
+            currentColor = temp
+            drawingView.setColor(currentColor)
+            btnColorRef?.setBackgroundColor(currentColor)
+            addRecent(currentColor)
+            closeColorPicker()
+        }
+        btnClose.setOnClickListener { closeColorPicker() }
+        root.setOnClickListener { closeColorPicker() } // tap on scrim closes
+        panel.setOnClickListener { /* swallow taps inside the panel */ }
+
+        pickerView = root
+        windowManager.addView(root, params)
+    }
+
+    private fun closeColorPicker() {
+        pickerView?.let { runCatching { windowManager.removeView(it) } }
+        pickerView = null
+    }
+
+    private fun makeSwatch(color: Int, onClick: () -> Unit): View {
+        val v = View(this)
+        val size = dp(40)
+        val lp = LinearLayout.LayoutParams(size, size)
+        lp.marginEnd = dp(10)
+        v.layoutParams = lp
+        val d = GradientDrawable()
+        d.shape = GradientDrawable.OVAL
+        d.setColor(color)
+        d.setStroke(dp(2), Color.WHITE)
+        v.background = d
+        v.setOnClickListener { onClick() }
+        return v
+    }
+
+    private fun getRecents(): List<Int> {
+        val raw = prefs.getString("recent_colors", "") ?: ""
+        if (raw.isEmpty()) return emptyList()
+        return raw.split(",").mapNotNull { it.toIntOrNull() }
+    }
+
+    private fun addRecent(c: Int) {
+        val list = getRecents().toMutableList()
+        list.remove(c)
+        list.add(0, c)
+        while (list.size > 6) list.removeAt(list.size - 1)
+        prefs.edit().putString("recent_colors", list.joinToString(",")).apply()
+    }
+
+    // ---- Dragging / modes ---------------------------------------------------
+
     private fun makeDragListener(onTap: (() -> Unit)?): View.OnTouchListener {
         return object : View.OnTouchListener {
             private var startX = 0
@@ -224,7 +350,6 @@ class OverlayService : Service() {
     }
 
     private fun updateToggleLabel(btn: Button) {
-        // ✏️ = drawing captures touches, ✋ = pass-through to apps below
         btn.text = if (drawing) "✏️" else "✋"
     }
 
@@ -233,7 +358,6 @@ class OverlayService : Service() {
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         if (!drawing) {
-            // let touches fall through to whatever app is underneath
             flags = flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
         }
         return flags
@@ -246,6 +370,7 @@ class OverlayService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        closeColorPicker()
         if (this::drawingView.isInitialized) runCatching { windowManager.removeView(drawingView) }
         if (this::toolbar.isInitialized) runCatching { windowManager.removeView(toolbar) }
     }

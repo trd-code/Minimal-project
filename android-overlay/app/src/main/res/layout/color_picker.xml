@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/pickerRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#B3000000">
+
+    <LinearLayout
+        android:id="@+id/pickerPanel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:background="@drawable/picker_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="18dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🎨 เลือกสีอิสระ"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:paddingBottom="10dp" />
+
+        <com.trdcode.screendraw.ColorWheelView
+            android:id="@+id/wheel"
+            android:layout_width="240dp"
+            android:layout_height="240dp"
+            android:layout_gravity="center_horizontal" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="☀️"
+                android:textSize="18sp"
+                android:paddingRight="8dp" />
+
+            <SeekBar
+                android:id="@+id/brightness"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="100"
+                android:progress="100" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🎯 สีหลัก"
+            android:textColor="#DDFFFFFF"
+            android:textSize="14sp"
+            android:paddingTop="8dp"
+            android:paddingBottom="6dp" />
+
+        <LinearLayout
+            android:id="@+id/presetRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🕘 ใช้ล่าสุด"
+            android:textColor="#DDFFFFFF"
+            android:textSize="14sp"
+            android:paddingTop="12dp"
+            android:paddingBottom="6dp" />
+
+        <LinearLayout
+            android:id="@+id/recentRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="40dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="16dp">
+
+            <View
+                android:id="@+id/preview"
+                android:layout_width="40dp"
+                android:layout_height="40dp" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/btnPickerClose"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:text="✕ ปิด"
+                android:textColor="#FFFFFF"
+                android:background="@null" />
+
+            <Button
+                android:id="@+id/btnPickerDone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:layout_marginStart="8dp"
+                android:paddingLeft="18dp"
+                android:paddingRight="18dp"
+                android:text="✓ ตกลง"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/bubble_bg" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>
