@@ -3,6 +3,6 @@
     android:accessibilityEventTypes="typeAllMask"
     android:accessibilityFeedbackType="feedbackGeneric"
     android:accessibilityFlags="flagDefault"
-    android:canRequestMagnification="true"
+    android:canControlMagnification="true"
     android:description="@string/magnifier_desc"
     android:notificationTimeout="100" />
