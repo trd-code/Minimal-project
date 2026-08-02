@@ -13,8 +13,6 @@ import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.IBinder
-import android.provider.Settings
-import android.widget.Toast
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -150,8 +148,6 @@ class OverlayService : Service() {
         val btnColor = toolbar.findViewById<Button>(R.id.btnColor)
         val btnUndo = toolbar.findViewById<Button>(R.id.btnUndo)
         val btnClear = toolbar.findViewById<Button>(R.id.btnClear)
-        val btnZoomIn = toolbar.findViewById<Button>(R.id.btnZoomIn)
-        val btnZoomOut = toolbar.findViewById<Button>(R.id.btnZoomOut)
         val btnMin = toolbar.findViewById<Button>(R.id.btnMin)
         val btnClose = toolbar.findViewById<Button>(R.id.btnClose)
 
@@ -182,8 +178,6 @@ class OverlayService : Service() {
         btnColor.setOnClickListener { openColorPicker() }
         btnUndo.setOnClickListener { drawingView.undo() }
         btnClear.setOnClickListener { drawingView.clearAll() }
-        btnZoomIn.setOnClickListener { screenZoom(1) }
-        btnZoomOut.setOnClickListener { screenZoom(-1) }
         btnMin.setOnClickListener { collapse() }
         btnClose.setOnClickListener { stopSelf() }
 
@@ -376,26 +370,6 @@ class OverlayService : Service() {
 
     private fun updateToggleLabel(btn: Button) {
         btn.text = if (drawing) "✏️" else "✋"
-    }
-
-    /** Zoom the whole screen via the accessibility magnifier (dir +1 in, -1 out). */
-    private fun screenZoom(dir: Int) {
-        val svc = MagnifierService.instance
-        if (svc == null) {
-            Toast.makeText(
-                this,
-                "เปิดสิทธิ์ 'ซูมทั้งจอ' ก่อน: การช่วยเหลือการเข้าถึง → วาดทับหน้าจอ → เปิด",
-                Toast.LENGTH_LONG
-            ).show()
-            runCatching {
-                startActivity(
-                    Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                )
-            }
-            return
-        }
-        if (dir > 0) svc.zoomIn() else svc.zoomOut()
     }
 
     private fun drawFlags(): Int {

@@ -75,32 +75,6 @@
             android:textSize="20sp" />
 
         <Button
-            android:id="@+id/btnZoomIn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
-            android:background="@null"
-            android:text="🔍+"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp" />
-
-        <Button
-            android:id="@+id/btnZoomOut"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
-            android:background="@null"
-            android:text="🔍−"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp" />
-
-        <Button
             android:id="@+id/btnMin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">วาดทับหน้าจอ</string>
-    <string name="magnifier_desc">ให้แอปนี้ซูมขยายทั้งหน้าจอได้ ควบคุมด้วยปุ่ม 🔍 บนแถบเครื่องมือลอย</string>
 </resources>

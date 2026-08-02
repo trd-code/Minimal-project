@@ -7,9 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.text.TextUtils
 import android.widget.Button
-import android.widget.TextView
 import android.widget.Toast
 
 class MainActivity : Activity() {
@@ -30,45 +28,10 @@ class MainActivity : Activity() {
             }
         }
 
-        findViewById<Button>(R.id.btnZoomPerm).setOnClickListener {
-            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-            Toast.makeText(
-                this,
-                "หา 'วาดทับหน้าจอ' ในรายการ แล้วสลับเปิด เพื่อใช้ปุ่มซูมทั้งจอ 🔍",
-                Toast.LENGTH_LONG
-            ).show()
-        }
-
         findViewById<Button>(R.id.btnStop).setOnClickListener {
             stopService(Intent(this, OverlayService::class.java))
             Toast.makeText(this, "หยุดแล้ว", Toast.LENGTH_SHORT).show()
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        val status = findViewById<TextView>(R.id.statusText)
-        if (isMagnifierEnabled()) {
-            status.text = "✅ สิทธิ์ซูมทั้งจอ: เปิดอยู่ (ใช้ปุ่ม 🔍 ได้)"
-            status.setTextColor(0xFF2E7D32.toInt())
-        } else {
-            status.text = "⚠️ สิทธิ์ซูมทั้งจอ: ยังไม่เปิด — กดปุ่มด้านล่างเพื่อเปิด"
-            status.setTextColor(0xFFC62828.toInt())
-        }
-    }
-
-    private fun isMagnifierEnabled(): Boolean {
-        val flat = Settings.Secure.getString(
-            contentResolver,
-            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-        ) ?: return false
-        val target = "$packageName/${MagnifierService::class.java.name}"
-        val splitter = TextUtils.SimpleStringSplitter(':')
-        splitter.setString(flat)
-        for (name in splitter) {
-            if (name.equals(target, ignoreCase = true)) return true
-        }
-        return false
     }
 
     private fun requestOverlayPermission() {
