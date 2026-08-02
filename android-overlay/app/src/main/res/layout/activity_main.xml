@@ -25,6 +25,15 @@
             android:lineSpacingMultiplier="1.2"
             android:paddingBottom="28dp" />
 
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:paddingBottom="12dp" />
+
         <Button
             android:id="@+id/btnStart"
             android:layout_width="match_parent"
