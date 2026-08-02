@@ -44,6 +44,7 @@ class OverlayService : Service() {
 
     private var drawing = true
     private var currentColor = Color.parseColor("#F44336")
+    private var currentStroke = 12f
     private var btnColorRef: Button? = null
     private var pickerView: View? = null
 
@@ -61,6 +62,7 @@ class OverlayService : Service() {
         super.onCreate()
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         prefs = getSharedPreferences("screendraw", Context.MODE_PRIVATE)
+        currentStroke = prefs.getFloat("stroke", 12f)
         startAsForeground()
         addDrawingView()
         addToolbar()
@@ -116,6 +118,7 @@ class OverlayService : Service() {
     private fun addDrawingView() {
         drawingView = DrawingView(this)
         drawingView.setColor(currentColor)
+        drawingView.setStrokeWidth(currentStroke)
         drawParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
@@ -210,6 +213,8 @@ class OverlayService : Service() {
         val preview = root.findViewById<View>(R.id.preview)
         val presetRow = root.findViewById<LinearLayout>(R.id.presetRow)
         val recentRow = root.findViewById<LinearLayout>(R.id.recentRow)
+        val penSize = root.findViewById<SeekBar>(R.id.penSize)
+        val penSizeLabel = root.findViewById<TextView>(R.id.penSizeLabel)
         val btnDone = root.findViewById<Button>(R.id.btnPickerDone)
         val btnClose = root.findViewById<Button>(R.id.btnPickerClose)
         val panel = root.findViewById<View>(R.id.pickerPanel)
@@ -237,6 +242,20 @@ class OverlayService : Service() {
         brightness.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
                 wheel.setValue(p / 100f)
+            }
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {}
+        })
+
+        penSize.progress = (currentStroke - 3f).toInt().coerceIn(0, 57)
+        penSizeLabel.text = "✒️ ขนาดปากกา: ${currentStroke.toInt()}"
+        penSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
+                val w = (p + 3).toFloat()
+                currentStroke = w
+                drawingView.setStrokeWidth(w)
+                penSizeLabel.text = "✒️ ขนาดปากกา: ${w.toInt()}"
+                prefs.edit().putFloat("stroke", w).apply()
             }
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {}

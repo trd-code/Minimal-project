@@ -55,6 +55,22 @@
         </LinearLayout>
 
         <TextView
+            android:id="@+id/penSizeLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✒️ ขนาดปากกา"
+            android:textColor="#DDFFFFFF"
+            android:textSize="14sp"
+            android:paddingTop="10dp" />
+
+        <SeekBar
+            android:id="@+id/penSize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="57"
+            android:progress="9" />
+
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="🎯 สีหลัก"
