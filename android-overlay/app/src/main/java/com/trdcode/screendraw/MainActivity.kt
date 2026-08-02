@@ -28,6 +28,15 @@ class MainActivity : Activity() {
             }
         }
 
+        findViewById<Button>(R.id.btnZoomPerm).setOnClickListener {
+            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            Toast.makeText(
+                this,
+                "หา 'วาดทับหน้าจอ' ในรายการ แล้วสลับเปิด เพื่อใช้ปุ่มซูมทั้งจอ 🔍",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+
         findViewById<Button>(R.id.btnStop).setOnClickListener {
             stopService(Intent(this, OverlayService::class.java))
             Toast.makeText(this, "หยุดแล้ว", Toast.LENGTH_SHORT).show()
