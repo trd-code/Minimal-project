@@ -145,6 +145,7 @@ class OverlayService : Service() {
         val btnColor = toolbar.findViewById<Button>(R.id.btnColor)
         val btnUndo = toolbar.findViewById<Button>(R.id.btnUndo)
         val btnClear = toolbar.findViewById<Button>(R.id.btnClear)
+        val btnZoomReset = toolbar.findViewById<Button>(R.id.btnZoomReset)
         val btnMin = toolbar.findViewById<Button>(R.id.btnMin)
         val btnClose = toolbar.findViewById<Button>(R.id.btnClose)
 
@@ -175,6 +176,7 @@ class OverlayService : Service() {
         btnColor.setOnClickListener { openColorPicker() }
         btnUndo.setOnClickListener { drawingView.undo() }
         btnClear.setOnClickListener { drawingView.clearAll() }
+        btnZoomReset.setOnClickListener { drawingView.resetZoom() }
         btnMin.setOnClickListener { collapse() }
         btnClose.setOnClickListener { stopSelf() }
 
