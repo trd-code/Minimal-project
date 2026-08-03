@@ -11,8 +11,8 @@ android {
         applicationId = "com.trdcode.screendraw"
         minSdk = 26
         targetSdk = 33
-        versionCode = 8
-        versionName = "2.0"
+        versionCode = 9
+        versionName = "2.1"
     }
 
     signingConfigs {

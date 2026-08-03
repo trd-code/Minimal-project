@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="#F21E1E1E"
+    android:gravity="center_vertical"
+    android:padding="8dp">
+
+    <EditText
+        android:id="@+id/textField"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:hint="พิมพ์ข้อความ…"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#88FFFFFF"
+        android:textSize="18sp"
+        android:inputType="textMultiLine"
+        android:maxLines="4"
+        android:background="#33FFFFFF"
+        android:padding="10dp" />
+
+    <Button
+        android:id="@+id/btnTextOk"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:minWidth="0dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:text="วาง"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/bubble_bg" />
+
+    <Button
+        android:id="@+id/btnTextCancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="0dp"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp"
+        android:background="@null"
+        android:text="✕"
+        android:textColor="#FF6B6B"
+        android:textSize="20sp" />
+</LinearLayout>

@@ -38,6 +38,20 @@
             android:textSize="20sp" />
 
         <Button
+            android:id="@+id/btnText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:background="@null"
+            android:text="T"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp" />
+
+        <Button
             android:id="@+id/btnColor"
             android:layout_width="34dp"
             android:layout_height="34dp"

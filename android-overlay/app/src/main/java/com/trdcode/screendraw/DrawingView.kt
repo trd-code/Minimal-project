@@ -10,14 +10,16 @@ import android.view.View
 
 /**
  * A transparent full-screen view that captures touches and draws freehand
- * strokes on top of whatever is shown behind it.
+ * strokes — and typed text — on top of whatever is shown behind it.
  */
 class DrawingView(context: Context) : View(context) {
 
-    private class Stroke(val path: Path, val paint: Paint)
+    private sealed class Item
+    private class StrokeItem(val path: Path, val paint: Paint) : Item()
+    private class TextItem(val x: Float, val y: Float, val text: String, val paint: Paint) : Item()
 
-    private val strokes = ArrayList<Stroke>()
-    private var currentPath: Path? = null
+    private val items = ArrayList<Item>()
+    private var currentStroke: StrokeItem? = null
 
     private var strokeColor = Color.RED
     private var strokeWidthPx = 12f
@@ -25,7 +27,11 @@ class DrawingView(context: Context) : View(context) {
     private var lastX = 0f
     private var lastY = 0f
 
-    private fun newPaint(): Paint = Paint().apply {
+    /** When true, a tap asks for text (via [onRequestText]) instead of drawing. */
+    var textMode = false
+    var onRequestText: ((Float, Float) -> Unit)? = null
+
+    private fun newStrokePaint(): Paint = Paint().apply {
         isAntiAlias = true
         color = strokeColor
         style = Paint.Style.STROKE
@@ -42,38 +48,56 @@ class DrawingView(context: Context) : View(context) {
         strokeWidthPx = w
     }
 
+    fun addText(x: Float, y: Float, text: String, color: Int, sizePx: Float) {
+        val p = Paint().apply {
+            isAntiAlias = true
+            this.color = color
+            textSize = sizePx
+            style = Paint.Style.FILL
+        }
+        items.add(TextItem(x, y, text, p))
+        invalidate()
+    }
+
     fun undo() {
-        if (strokes.isNotEmpty()) {
-            strokes.removeAt(strokes.size - 1)
+        if (items.isNotEmpty()) {
+            items.removeAt(items.size - 1)
             invalidate()
         }
     }
 
     fun clearAll() {
-        strokes.clear()
-        currentPath = null
+        items.clear()
+        currentStroke = null
         invalidate()
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val x = event.x
         val y = event.y
+
+        if (textMode) {
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                onRequestText?.invoke(x, y)
+            }
+            return true
+        }
+
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                val path = Path()
-                path.moveTo(x, y)
-                strokes.add(Stroke(path, newPaint()))
-                currentPath = path
+                val item = StrokeItem(Path().apply { moveTo(x, y) }, newStrokePaint())
+                items.add(item)
+                currentStroke = item
                 lastX = x
                 lastY = y
                 invalidate()
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
-                currentPath?.let {
+                currentStroke?.let {
                     val midX = (lastX + x) / 2f
                     val midY = (lastY + y) / 2f
-                    it.quadTo(lastX, lastY, midX, midY)
+                    it.path.quadTo(lastX, lastY, midX, midY)
                     lastX = x
                     lastY = y
                     invalidate()
@@ -81,8 +105,8 @@ class DrawingView(context: Context) : View(context) {
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                currentPath?.lineTo(x, y)
-                currentPath = null
+                currentStroke?.path?.lineTo(x, y)
+                currentStroke = null
                 invalidate()
                 return true
             }
@@ -92,8 +116,17 @@ class DrawingView(context: Context) : View(context) {
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        for (s in strokes) {
-            canvas.drawPath(s.path, s.paint)
+        for (item in items) {
+            when (item) {
+                is StrokeItem -> canvas.drawPath(item.path, item.paint)
+                is TextItem -> {
+                    var yy = item.y
+                    for (line in item.text.split("\n")) {
+                        canvas.drawText(line, item.x, yy, item.paint)
+                        yy += item.paint.textSize * 1.2f
+                    }
+                }
+            }
         }
     }
 }

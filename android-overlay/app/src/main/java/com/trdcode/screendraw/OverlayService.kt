@@ -18,7 +18,9 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
@@ -45,6 +47,7 @@ class OverlayService : Service() {
     private var currentStroke = 12f
     private var btnColorRef: Button? = null
     private var pickerView: View? = null
+    private var textInputView: View? = null
 
     private val presetColors = intArrayOf(
         Color.parseColor("#F44336"), // red
@@ -145,6 +148,7 @@ class OverlayService : Service() {
         val collapsedBubble = toolbar.findViewById<View>(R.id.collapsedBubble)
         val handle = toolbar.findViewById<View>(R.id.handle)
         val btnToggle = toolbar.findViewById<Button>(R.id.btnToggle)
+        val btnText = toolbar.findViewById<Button>(R.id.btnText)
         val btnColor = toolbar.findViewById<Button>(R.id.btnColor)
         val btnUndo = toolbar.findViewById<Button>(R.id.btnUndo)
         val btnClear = toolbar.findViewById<Button>(R.id.btnClear)
@@ -175,6 +179,18 @@ class OverlayService : Service() {
             applyDrawingMode()
             updateToggleLabel(btnToggle)
         }
+        btnText.setOnClickListener {
+            // ensure the canvas receives the tap that picks the text position
+            drawing = true
+            applyDrawingMode()
+            updateToggleLabel(btnToggle)
+            drawingView.textMode = true
+            android.widget.Toast.makeText(
+                this, "แตะตำแหน่งที่จะพิมพ์ข้อความ", android.widget.Toast.LENGTH_SHORT
+            ).show()
+        }
+        drawingView.onRequestText = { x, y -> showTextInput(x, y) }
+
         btnColor.setOnClickListener { openColorPicker() }
         btnUndo.setOnClickListener { drawingView.undo() }
         btnClear.setOnClickListener { drawingView.clearAll() }
@@ -300,6 +316,56 @@ class OverlayService : Service() {
         pickerView = null
     }
 
+    // ---- Text tool ----------------------------------------------------------
+
+    private fun showTextInput(x: Float, y: Float) {
+        if (textInputView != null) return
+        val root = LayoutInflater.from(this).inflate(R.layout.text_input, null)
+        // focusable window so the keyboard can appear
+        val params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            overlayType(),
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.TOP
+            softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE or
+                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+        }
+
+        val field = root.findViewById<EditText>(R.id.textField)
+        val ok = root.findViewById<Button>(R.id.btnTextOk)
+        val cancel = root.findViewById<Button>(R.id.btnTextCancel)
+
+        ok.setOnClickListener {
+            val t = field.text.toString()
+            if (t.isNotBlank()) {
+                val size = currentStroke.coerceAtLeast(6f) * 5f
+                drawingView.addText(x, y, t, currentColor, size)
+            }
+            closeTextInput()
+        }
+        cancel.setOnClickListener { closeTextInput() }
+
+        textInputView = root
+        windowManager.addView(root, params)
+
+        field.requestFocus()
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(field, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    private fun closeTextInput() {
+        drawingView.textMode = false
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        textInputView?.let {
+            runCatching { imm.hideSoftInputFromWindow(it.windowToken, 0) }
+            runCatching { windowManager.removeView(it) }
+        }
+        textInputView = null
+    }
+
     private fun makeSwatch(color: Int, onClick: () -> Unit): View {
         val v = View(this)
         val size = dp(40)
@@ -390,6 +456,7 @@ class OverlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         closeColorPicker()
+        closeTextInput()
         if (this::drawingView.isInitialized) runCatching { windowManager.removeView(drawingView) }
         if (this::toolbar.isInitialized) runCatching { windowManager.removeView(toolbar) }
     }
